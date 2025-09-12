@@ -1,44 +1,72 @@
 import React from 'react';
 
 function TrainSchedule({ trains = [] }) {
-  // If no trains provided, use default data
-  const defaultTrains = [
-    { name: "Indian Express", scheduled: "14:30", arrival: "14:35", departure: "14:40", status: "On time" },
-    { name: "Kalanidhi Express", scheduled: "14:45", arrival: "14:45", departure: "", status: "Delayed" },
-    { name: "Kaifiyat Express", scheduled: "15:00", arrival: "15:00", departure: "15:05", status: "On time" },
-    { name: "Garib Rath", scheduled: "15:15", arrival: "", departure: "", status: "Cancelled" }
-  ];
+  const safeTrains = trains.length > 0 ? trains : [];
 
-  const trainsToShow = trains.length > 0 ? trains : defaultTrains;
-
-  const statusClass = status =>
-    status === "On time" ? "status-on" :
-    status === "Delayed" ? "status-delayed" :
-    status === "Cancelled" ? "status-cancelled" : "";
+  // Improved status badge color logic
+  const getStatusStyle = (status) => {
+    const st = status.toLowerCase().replace(" ", "_");
+    if (st === 'on_time' || st === 'ontime' || st === 'on time')
+      return { backgroundColor: '#d4edda', color: '#155724', borderColor: '#c3e6cb' }; // green
+    if (st === 'delayed')
+      return { backgroundColor: '#fff3cd', color: '#856404', borderColor: '#ffeeba' }; // yellow/orange
+    if (st === 'cancelled')
+      return { backgroundColor: '#f8d7da', color: '#721c24', borderColor: '#f5c6cb' }; // red
+    if (st === 'early')
+      return { backgroundColor: '#d1ecf1', color: '#0c5460', borderColor: '#bee5eb' }; // blue
+    return { backgroundColor: '#e2e3e5', color: '#383d41', borderColor: '#d6d8db' }; // gray
+  };
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Train</th>
-          <th>Scheduled</th>
-          <th>Arrival</th>
-          <th>Departure</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {trainsToShow.map((train, i) => (
-          <tr key={i}>
-            <td>{train.name}</td>
-            <td>{train.scheduled}</td>
-            <td>{train.arrival}</td>
-            <td>{train.departure}</td>
-            <td className={statusClass(train.status)}>{train.status}</td>
+    <div className="train-schedule-container">
+      <table className="train-schedule-table" cellSpacing="0" cellPadding="0">
+        <thead>
+          <tr>
+            {['Train', 'Scheduled', 'Arrival', 'Departure', 'Status'].map((header) => (
+              <th key={header}>{header}</th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {safeTrains.map((train, idx) => {
+            const badgeStyle = getStatusStyle(train.status || '');
+            return (
+              <tr key={idx} className="train-row animate-fadeIn">
+                <td>{train.name || 'Unknown'}</td>
+                <td>{train.scheduled || '—'}</td>
+                <td>{train.arrival || '—'}</td>
+                <td>{train.departure || '—'}</td>
+                <td>
+                  <span className="status-badge" style={badgeStyle}>
+                    {train.status || 'Unknown'}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Mobile friendly cards */}
+      <div className="train-cards">
+        {safeTrains.map((train, idx) => {
+          const badgeStyle = getStatusStyle(train.status || '');
+          return (
+            <div key={idx} className="train-card animate-fadeIn">
+              <div className="train-card-header">{train.name || 'Unknown'}</div>
+              <div><strong>Scheduled:</strong> {train.scheduled || '—'}</div>
+              <div><strong>Arrival:</strong> {train.arrival || '—'}</div>
+              <div><strong>Departure:</strong> {train.departure || '—'}</div>
+              <div>
+                <span className="status-badge" style={badgeStyle}>
+                  {train.status || 'Unknown'}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

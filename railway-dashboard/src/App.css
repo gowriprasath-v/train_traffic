@@ -161,3 +161,188 @@ body {
   border: 1px solid #eee;
   margin-bottom: 0;
 }
+.train-schedule-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.train-schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 14px;
+  font-weight: 600;
+  color: #333;
+}
+.train-schedule-table th,
+.train-schedule-table td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 15px;
+}
+.train-schedule-table th:nth-child(n+2),
+.train-schedule-table td:nth-child(n+2) {
+  text-align: center;
+}
+.train-row {
+  background-color: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+.train-row:hover {
+  background-color: #e9f7fe;
+}
+
+/* Badge style */
+.status-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1.5px solid transparent;
+  cursor: default;
+  user-select: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.status-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.13);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+/* Responsive style: show cards for small devices */
+.train-cards {
+  display: none;
+}
+.train-card {
+  background-color: #fff;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+  border-radius: 14px;
+  margin: 12px auto;
+  padding: 18px 22px;
+  max-width: 400px;
+  font-weight: 600;
+  font-size: 15px;
+  animation: fadeIn 0.6s ease forwards;
+}
+.train-card-header {
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+  color: #222;
+}
+@media(max-width: 720px) {
+  .train-schedule-table {
+    display: none;  /* Hide the big table on small screens */
+  }
+  .train-cards {
+    display: block; /* Show the card layout on small screens */
+  }
+}
+.train-schedule-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.train-schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 14px;
+  font-weight: 600;
+  color: #333;
+}
+.train-schedule-table th,
+.train-schedule-table td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 15px;
+}
+.train-schedule-table th:nth-child(n+2),
+.train-schedule-table td:nth-child(n+2) {
+  text-align: center;
+}
+.train-row {
+  background-color: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+.train-row:hover {
+  background-color: #e9f7fe;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1.5px solid transparent;
+  cursor: default;
+  user-select: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.status-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.13);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.train-cards {
+  display: none;
+}
+.train-card {
+  background-color: #fff;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+  border-radius: 14px;
+  margin: 12px auto;
+  padding: 18px 22px;
+  max-width: 400px;
+  font-weight: 600;
+  font-size: 15px;
+  animation: fadeIn 0.6s ease forwards;
+}
+.train-card-header {
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+  color: #222;
+}
+@media(max-width: 720px) {
+  .train-schedule-table {
+    display: none;
+  }
+  .train-cards {
+    display: block;
+  }
+}
