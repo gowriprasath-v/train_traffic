@@ -3,7 +3,7 @@ import React from 'react';
 function KPIs() {
   const metrics = [
     { label: 'Throughput', value: '15 trains/hr' },
-    { label: 'Avg delay', value: '5 minutes' },
+    { label: 'Avg delay', value: ' 11 sakthi' },
     { label: 'Platform utilization', value: '80%' },
     { label: 'Punctuality rate', value: '90%' },
   ];
