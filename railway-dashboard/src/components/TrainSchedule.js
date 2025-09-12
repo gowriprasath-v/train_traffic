@@ -1,18 +1,23 @@
 import React from 'react';
 
-function TrainSchedule() {
-  const trains = [
+function TrainSchedule({ trains = [] }) {
+  // If no trains provided, use default data
+  const defaultTrains = [
     { name: "Indian Express", scheduled: "14:30", arrival: "14:35", departure: "14:40", status: "On time" },
     { name: "Kalanidhi Express", scheduled: "14:45", arrival: "14:45", departure: "", status: "Delayed" },
     { name: "Kaifiyat Express", scheduled: "15:00", arrival: "15:00", departure: "15:05", status: "On time" },
     { name: "Garib Rath", scheduled: "15:15", arrival: "", departure: "", status: "Cancelled" }
   ];
-  const statusColor = status =>
-    status === "On time" ? "#27ae60" :
-    status === "Delayed" ? "#e67e22" :
-    status === "Cancelled" ? "#e74c3c" : "#222";
+
+  const trainsToShow = trains.length > 0 ? trains : defaultTrains;
+
+  const statusClass = status =>
+    status === "On time" ? "status-on" :
+    status === "Delayed" ? "status-delayed" :
+    status === "Cancelled" ? "status-cancelled" : "";
+
   return (
-    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <table>
       <thead>
         <tr>
           <th>Train</th>
@@ -23,17 +28,18 @@ function TrainSchedule() {
         </tr>
       </thead>
       <tbody>
-        {trains.map((train, i) => (
+        {trainsToShow.map((train, i) => (
           <tr key={i}>
             <td>{train.name}</td>
             <td>{train.scheduled}</td>
             <td>{train.arrival}</td>
             <td>{train.departure}</td>
-            <td style={{ color: statusColor(train.status), fontWeight: 'bold' }}>{train.status}</td>
+            <td className={statusClass(train.status)}>{train.status}</td>
           </tr>
         ))}
       </tbody>
     </table>
   );
 }
+
 export default TrainSchedule;
