@@ -12,7 +12,7 @@ def send_disruption(train_id, delay_minutes, reason):
     try:
         response = requests.post(url, json=alert_data)
         response.raise_for_status()
-        print("Alert sent successfully:", response.json())
+        print("Alert snt successfully:", response.json())
     except requests.exceptions.RequestException as e:
         print("Error sending alert:", e)
 
