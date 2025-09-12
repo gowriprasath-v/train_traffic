@@ -1,0 +1,163 @@
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #c7c4e9 0%, #f6f7fa 60%, #fff 100%);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-areas:
+    "header header"
+    "track system"
+    "train control"
+    "train kpis"
+    "alerts-bottom alerts-bottom";
+  gap: 24px;
+  max-width: 1200px;
+  margin: 36px auto;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #222;
+}
+
+.dashboard-header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.09rem;
+  margin-bottom: 0;
+}
+
+.station-selector {
+  cursor: pointer;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.date-time {
+  color: #555;
+  font-size: 1.01rem;
+}
+
+/* Card appearance for all blocks */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 30px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.09);
+}
+
+/* Grid area assignment */
+.track-overview { grid-area: track; }
+.system-alerts { grid-area: system; }
+.train-schedule { grid-area: train; }
+.control-mode { grid-area: control; }
+.kpi-cards { grid-area: kpis; display: flex; flex-direction: column; gap: 14px; }
+.alerts-bottom { grid-area: alerts-bottom; margin-top: 20px; }
+
+.card > h2 {
+  margin-top: 0;
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #222;
+  margin-bottom: 18px;
+}
+
+.system-alerts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.system-alerts li {
+  font-weight: 500;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #ad5600;
+  display: flex;
+  align-items: center;
+}
+.system-alerts li svg,
+.system-alerts li span {
+  margin-right: 10px;
+}
+
+.train-schedule table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.train-schedule th, .train-schedule td {
+  padding: 10px 18px;
+  text-align: left;
+  font-size: 1rem;
+}
+.train-schedule th {
+  background-color: #f6f7fa;
+  font-weight: 700;
+  color: #333;
+}
+.train-schedule td {
+  border-bottom: 1px solid #e6e6e6;
+  font-weight: 500;
+}
+.train-schedule td.status-on {
+  color: #27ae60;
+  font-weight: bold;
+}
+.train-schedule td.status-delayed {
+  color: #e67e22;
+  font-weight: bold;
+}
+.train-schedule td.status-cancelled {
+  color: #e74c3c;
+  font-weight: bold;
+}
+/* Remove border on last row */
+.train-schedule tr:last-child td {
+  border-bottom: none;
+}
+
+.control-mode strong {
+  font-size: 1.07rem;
+  margin-bottom: 7px;
+  display: block;
+}
+.control-mode p {
+  margin: 6px 0 13px 0;
+  color: #474747;
+  font-size: 1rem;
+}
+.control-mode button {
+  margin-right: 10px;
+  background: #fff;
+  color: #222;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 22px;
+  border: 1.4px solid #333;
+  padding: 10px 28px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.18s, color 0.18s;
+}
+.control-mode button.active,
+.control-mode button:active {
+  background: #111;
+  color: #fff;
+  border: 1.8px solid #111;
+}
+
+.kpi-cards > div {
+  background: #f8f8fa;
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid #eee;
+  margin-bottom: 0;
+}
