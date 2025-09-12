@@ -1,0 +1,5 @@
+{
+  "train_id": "12345",
+  "delay_minutes": 15,
+  "reason": "Signal failure"
+}
