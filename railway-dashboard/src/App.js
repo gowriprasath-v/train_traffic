@@ -8,38 +8,46 @@ import ControlMode from "./components/ControlMode";
 import KPIs from "./components/KPIs";
 import TrainSchedule from "./components/TrainSchedule";
 
+// Optional: Simple spinner component
+function Spinner() {
+  return <span style={{ marginLeft: 10, fontSize: 16 }}>⏳</span>;
+}
+
 function App() {
-  // State hooks
+  // State hooks for each section
   const [alerts, setAlerts] = useState([]);
   const [trains, setTrains] = useState([]);
   const [metrics, setMetrics] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [loadingTrains, setLoadingTrains] = useState(false);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  // Backend base URL
   const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
-  // Fetch alert data from API
+  // Fetch alert data
   const fetchAlerts = useCallback(async () => {
+    setLoadingAlerts(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/alerts`);
       const rawAlerts = response.data.alerts || [];
-      // Convert nested objects to strings to avoid React error
       const safeAlerts = rawAlerts.map((a) =>
         typeof a === "string" ? a : JSON.stringify(a)
       );
       setAlerts(safeAlerts);
     } catch (error) {
-      console.error("Fetch alerts failed:", error);
       setAlerts([
         "Platform 2 signal failure (fallback)",
         "Train 443 running late (fallback)",
       ]);
+    } finally {
+      setLoadingAlerts(false);
     }
   }, [API_BASE_URL]);
 
-  // Fetch train schedule from API
+  // Fetch train schedule
   const fetchSchedule = useCallback(async () => {
+    setLoadingTrains(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/schedule`);
       const schedule = response.data.schedule;
@@ -56,7 +64,6 @@ function App() {
         setTrains([]);
       }
     } catch (error) {
-      console.error("Fetch schedule failed:", error);
       setTrains([
         {
           name: "Indian Express",
@@ -87,15 +94,17 @@ function App() {
           status: "Cancelled",
         },
       ]);
+    } finally {
+      setLoadingTrains(false);
     }
   }, [API_BASE_URL]);
 
-  // Fetch performance metrics from API
+  // Fetch metrics
   const fetchMetrics = useCallback(async () => {
+    setLoadingMetrics(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/metrics`);
       const data = response.data.metrics || {};
-      // Sanitize to only string or numbers inside metrics
       const safeMetrics = {};
       for (const key in data) {
         safeMetrics[key] =
@@ -103,37 +112,32 @@ function App() {
       }
       setMetrics(safeMetrics);
     } catch (error) {
-      console.error("Fetch metrics failed:", error);
       setMetrics({
         throughput: "15 trains/hr",
         avg_delay: "5 minutes",
         platform_utilization: "80%",
         punctuality: "90%",
       });
+    } finally {
+      setLoadingMetrics(false);
     }
   }, [API_BASE_URL]);
 
-  // Combined fetch function
+  // Fetch all dashboard data
   const fetchAllData = useCallback(async () => {
-    setLoading(true);
     setError(null);
-    try {
-      await Promise.all([fetchAlerts(), fetchSchedule(), fetchMetrics()]);
-    } catch (e) {
-      setError("Failed to fetch dashboard data");
-    } finally {
-      setLoading(false);
-    }
+    fetchAlerts();
+    fetchSchedule();
+    fetchMetrics();
   }, [fetchAlerts, fetchSchedule, fetchMetrics]);
 
   useEffect(() => {
     fetchAllData();
-    // Auto refresh every 30 seconds
     const interval = setInterval(fetchAllData, 30000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 
-  // Simulate buttons calling backend or fallback locally
+  // Button actions
   const addAlert = async (type, message, severity = "medium") => {
     try {
       await axios.post(`${API_BASE_URL}/alerts`, {
@@ -142,50 +146,30 @@ function App() {
         severity,
         timestamp: new Date().toISOString(),
       });
-      await fetchAlerts();
+      fetchAlerts();
     } catch (error) {
-      console.error("Simulate alert failed", error);
-      // fallback locally
       setAlerts((old) => [...old, message]);
     }
   };
 
-  // UI render logic for loading/error
-  if (loading)
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          fontSize: 18,
-        }}
-      >
-        Loading dashboard data...
-      </div>
-    );
-
-  if (error)
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          color: "red",
-        }}
-      >
-        <h2>{error}</h2>
-        <button onClick={fetchAllData}>Retry</button>
-      </div>
-    );
-
-  // Main dashboard render
+  // Error message shown at top, but dashboard always visible.
   return (
-    <div>
+    <div className="app-gradient" style={{ minHeight: "100vh" }}>
+      {error && (
+        <div
+          style={{
+            color: "red",
+            textAlign: "center",
+            padding: "8px",
+            fontWeight: "bold",
+            fontSize: 16,
+            background: "#fff2f2",
+            marginBottom: "8px",
+          }}
+        >
+          Error: {error}
+        </div>
+      )}
       {/* Simulation Buttons */}
       <div
         style={{
@@ -193,8 +177,6 @@ function App() {
           display: "flex",
           gap: 15,
           flexWrap: "wrap",
-          backgroundColor: "#f0f0f0",
-          borderBottom: "1.5px solid #ddd",
           justifyContent: "center",
         }}
       >
@@ -206,16 +188,7 @@ function App() {
               "high"
             )
           }
-          style={{
-            backgroundColor: "#ff4444",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontWeight: "bold",
-            fontSize: 14,
-            cursor: "pointer",
-            border: "none",
-          }}
+          style={buttonStyle("#ff4444")}
         >
           🚨 Simulate Emergency
         </button>
@@ -227,16 +200,7 @@ function App() {
               "medium"
             )
           }
-          style={{
-            backgroundColor: "#ff8800",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontWeight: "bold",
-            fontSize: 14,
-            cursor: "pointer",
-            border: "none",
-          }}
+          style={buttonStyle("#ff8800")}
         >
           🚂 Add Train Delay
         </button>
@@ -248,36 +212,15 @@ function App() {
               "medium"
             )
           }
-          style={{
-            backgroundColor: "#0088ff",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontWeight: "bold",
-            fontSize: 14,
-            cursor: "pointer",
-            border: "none",
-          }}
+          style={buttonStyle("#0088ff")}
         >
           🌧️ Add Weather Alert
         </button>
-        <button
-          onClick={fetchAllData}
-          style={{
-            backgroundColor: "#28a745",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontWeight: "bold",
-            fontSize: 14,
-            cursor: "pointer",
-            border: "none",
-          }}
-        >
+        <button onClick={fetchAllData} style={buttonStyle("#28a745")}>
           🔄 Refresh Data
         </button>
       </div>
-      {/* Render Dashboard */}
+      {/* Render Dashboard with per-section loading indicators */}
       <DashboardLayout
         stationName="Kanpur Central"
         dateTime={new Date().toLocaleString("en-IN", {
@@ -289,13 +232,38 @@ function App() {
           minute: "2-digit",
         })}
         trackOverview={<TrackOverview />}
-        systemAlerts={<SystemAlerts alerts={alerts} />}
+        systemAlerts={
+          <>
+            <SystemAlerts alerts={alerts} />
+            {loadingAlerts && <Spinner />}
+          </>
+        }
         controlMode={<ControlMode />}
-        kpis={<KPIs metrics={metrics} />}
-        trainSchedule={<TrainSchedule trains={trains} />}
+        kpis={
+          <>
+            <KPIs metrics={metrics} />
+            {loadingMetrics && <Spinner />}
+          </>
+        }
+        trainSchedule={
+          <>
+            <TrainSchedule trains={trains} />
+            {loadingTrains && <Spinner />}
+          </>
+        }
       />
     </div>
   );
 }
 
+const buttonStyle = (bgColor) => ({
+  backgroundColor: bgColor,
+  color: "white",
+  padding: "12px 20px",
+  borderRadius: 8,
+  fontWeight: "bold",
+  fontSize: 14,
+  cursor: "pointer",
+  border: "none",
+});
 export default App;
