@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from postgresql_models import Base, Schedule, TrainDB
 from dotenv import load_dotenv
 from contextlib import contextmanager
+from datetime import datetime
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -17,7 +18,6 @@ logger = logging.getLogger(__name__)
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create tables if missing (dev). In production use Alembic migrations.
 Base.metadata.create_all(bind=engine)
 
 @contextmanager
@@ -28,22 +28,16 @@ def get_db():
     finally:
         db.close()
 
-
 def save_schedule_to_db(schedule_data: dict) -> None:
-    """
-    Persist schedule_data into Postgres.
-    Current behavior: delete previous schedules, insert this one.
-    """
     with get_db() as session:
         try:
-            # wipe old data (keeps DB simple)
             session.query(TrainDB).delete()
             session.query(Schedule).delete()
             session.flush()
 
             schedule = Schedule(date=schedule_data["date"])
             session.add(schedule)
-            session.flush()  # ensure schedule.id exists
+            session.flush()
 
             for t in schedule_data.get("trains", []):
                 train = TrainDB(
@@ -67,11 +61,15 @@ def save_schedule_to_db(schedule_data: dict) -> None:
             logger.exception("Failed to save schedule to DB")
             raise
 
+def sort_trains_by_arrival(trains):
+    def arrival_key(t):
+        try:
+            return datetime.strptime(t["arrival"], "%H:%M")
+        except Exception:
+            return datetime.strptime("00:00", "%H:%M")
+    return sorted(trains, key=arrival_key)
 
 def get_schedule_from_db() -> dict | None:
-    """
-    Read the first schedule + trains and return API-friendly dict.
-    """
     with get_db() as session:
         try:
             schedule = session.query(Schedule).first()
@@ -91,6 +89,7 @@ def get_schedule_from_db() -> dict | None:
                     "status": t.status or "On time",
                     "delay_minutes": int(t.delay_minutes or 0)
                 })
+            trains = sort_trains_by_arrival(trains)
             return {"date": schedule.date, "trains": trains}
         except SQLAlchemyError:
             logger.exception("Failed to read schedule from DB")

@@ -1,4 +1,3 @@
-# mongo_alerts.py
 import os
 import logging
 from pymongo import MongoClient, errors
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 try:
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    client.server_info()  # will throw if cannot connect
+    client.server_info()
 except Exception as e:
     logger.exception("Could not connect to MongoDB - check MONGO_URI and network")
     raise
@@ -23,9 +22,6 @@ db = client["team3_alerts"]
 alerts_collection = db.get_collection("alerts")
 
 def save_alert(alert_data: dict) -> None:
-    """
-    Save alert; if timestamp missing, add current ISO timestamp.
-    """
     if "timestamp" not in alert_data or not alert_data["timestamp"]:
         alert_data["timestamp"] = datetime.utcnow().isoformat()
     try:
@@ -39,7 +35,6 @@ def get_recent_alerts(limit: int = 10) -> list[dict]:
         cursor = alerts_collection.find().sort("timestamp", -1).limit(limit)
         results = []
         for a in cursor:
-            # remove _id for API consumers
             a.pop("_id", None)
             results.append(a)
         return results
