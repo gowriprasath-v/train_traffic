@@ -7,14 +7,50 @@ import SystemAlerts from "./components/SystemAlerts";
 import ControlMode from "./components/ControlMode";
 import KPIs from "./components/KPIs";
 import TrainSchedule from "./components/TrainSchedule";
+import 'leaflet/dist/leaflet.css'; // import leaflet CSS once here
 
-// Optional: Simple spinner component
+// Spinner for loading states
 function Spinner() {
   return <span style={{ marginLeft: 10, fontSize: 16 }}>⏳</span>;
 }
 
+// StationSelector dropdown component
+function StationSelector({ stations, selectedStation, onChange }) {
+  return (
+    <select
+      value={selectedStation}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        fontSize: "1.15rem",
+        fontWeight: "600",
+        padding: "6px 12px",
+        borderRadius: 8,
+        border: "1.5px solid #555770",
+        cursor: "pointer",
+        backgroundColor: "#4a3f72",
+        color: "#eee",
+        userSelect: "none",
+      }}
+    >
+      {stations.map((station) => (
+        <option key={station} value={station}>
+          {station}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function App() {
-  // State hooks for each section
+  const stations = [
+    "Kanpur Central",
+    "Lucknow",
+    "Delhi Junction",
+    "Varanasi",
+    "Allahabad",
+  ];
+  const [selectedStation, setSelectedStation] = useState(stations[0]);
+
   const [alerts, setAlerts] = useState([]);
   const [trains, setTrains] = useState([]);
   const [metrics, setMetrics] = useState({});
@@ -25,11 +61,12 @@ function App() {
 
   const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
-  // Fetch alert data
   const fetchAlerts = useCallback(async () => {
     setLoadingAlerts(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/alerts`);
+      const response = await axios.get(
+        `${API_BASE_URL}/alerts?station=${encodeURIComponent(selectedStation)}`
+      );
       const rawAlerts = response.data.alerts || [];
       const safeAlerts = rawAlerts.map((a) =>
         typeof a === "string" ? a : JSON.stringify(a)
@@ -43,13 +80,14 @@ function App() {
     } finally {
       setLoadingAlerts(false);
     }
-  }, [API_BASE_URL]);
+  }, [selectedStation, API_BASE_URL]);
 
-  // Fetch train schedule
   const fetchSchedule = useCallback(async () => {
     setLoadingTrains(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/schedule`);
+      const response = await axios.get(
+        `${API_BASE_URL}/schedule?station=${encodeURIComponent(selectedStation)}`
+      );
       const schedule = response.data.schedule;
       if (schedule && schedule.trains) {
         const safeTrains = schedule.trains.map((train) => ({
@@ -97,13 +135,14 @@ function App() {
     } finally {
       setLoadingTrains(false);
     }
-  }, [API_BASE_URL]);
+  }, [selectedStation, API_BASE_URL]);
 
-  // Fetch metrics
   const fetchMetrics = useCallback(async () => {
     setLoadingMetrics(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/metrics`);
+      const response = await axios.get(
+        `${API_BASE_URL}/metrics?station=${encodeURIComponent(selectedStation)}`
+      );
       const data = response.data.metrics || {};
       const safeMetrics = {};
       for (const key in data) {
@@ -121,10 +160,9 @@ function App() {
     } finally {
       setLoadingMetrics(false);
     }
-  }, [API_BASE_URL]);
+  }, [selectedStation, API_BASE_URL]);
 
-  // Fetch all dashboard data
-  const fetchAllData = useCallback(async () => {
+  const fetchAllData = useCallback(() => {
     setError(null);
     fetchAlerts();
     fetchSchedule();
@@ -137,24 +175,8 @@ function App() {
     return () => clearInterval(interval);
   }, [fetchAllData]);
 
-  // Button actions
-  const addAlert = async (type, message, severity = "medium") => {
-    try {
-      await axios.post(`${API_BASE_URL}/alerts`, {
-        type,
-        message,
-        severity,
-        timestamp: new Date().toISOString(),
-      });
-      fetchAlerts();
-    } catch (error) {
-      setAlerts((old) => [...old, message]);
-    }
-  };
-
-  // Error message shown at top, but dashboard always visible.
   return (
-    <div className="app-gradient" style={{ minHeight: "100vh" }}>
+    <div className="app-gradient" style={{ minHeight: "100vh", padding: 20 }}>
       {error && (
         <div
           style={{
@@ -165,64 +187,32 @@ function App() {
             fontSize: 16,
             background: "#fff2f2",
             marginBottom: "8px",
+            borderRadius: 6,
           }}
         >
           Error: {error}
         </div>
       )}
-      {/* Simulation Buttons */}
+
+      {/* Header area with Station Selector */}
       <div
         style={{
-          padding: 20,
           display: "flex",
-          gap: 15,
-          flexWrap: "wrap",
-          justifyContent: "center",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          marginBottom: 14,
         }}
       >
-        <button
-          onClick={() =>
-            addAlert(
-              "emergency",
-              "⚡ Disruption: Overhead equipment failure at Track 4. Immediate action required!",
-              "high"
-            )
-          }
-          style={buttonStyle("#ff4444")}
-        >
-          🚨 Simulate Emergency
-        </button>
-        <button
-          onClick={() =>
-            addAlert(
-              "delay",
-              "🚂 Express 205 delayed by 25 minutes - mechanical issue",
-              "medium"
-            )
-          }
-          style={buttonStyle("#ff8800")}
-        >
-          🚂 Add Train Delay
-        </button>
-        <button
-          onClick={() =>
-            addAlert(
-              "weather",
-              "🌧️ Heavy rain warning - reduce speed on all tracks",
-              "medium"
-            )
-          }
-          style={buttonStyle("#0088ff")}
-        >
-          🌧️ Add Weather Alert
-        </button>
-        <button onClick={fetchAllData} style={buttonStyle("#28a745")}>
-          🔄 Refresh Data
-        </button>
+        <StationSelector
+          stations={stations}
+          selectedStation={selectedStation}
+          onChange={setSelectedStation}
+        />
       </div>
-      {/* Render Dashboard with per-section loading indicators */}
+
+      {/* Dashboard Layout */}
       <DashboardLayout
-        stationName="Kanpur Central"
+        stationName={selectedStation}
         dateTime={new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
           year: "numeric",
@@ -231,7 +221,7 @@ function App() {
           hour: "2-digit",
           minute: "2-digit",
         })}
-        trackOverview={<TrackOverview />}
+        trackOverview={<TrackOverview station={selectedStation} />}
         systemAlerts={
           <>
             <SystemAlerts alerts={alerts} />
@@ -256,14 +246,4 @@ function App() {
   );
 }
 
-const buttonStyle = (bgColor) => ({
-  backgroundColor: bgColor,
-  color: "white",
-  padding: "12px 20px",
-  borderRadius: 8,
-  fontWeight: "bold",
-  fontSize: 14,
-  cursor: "pointer",
-  border: "none",
-});
 export default App;

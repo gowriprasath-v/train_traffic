@@ -1,47 +1,28 @@
 import React from "react";
-import stationMap from "../assets/station-map.png"; // use your image from assets
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import 'leaflet/dist/leaflet.css';
 
-// Example: Demo “track alerts” to show on map
-const trackAlerts = [
-  { track: "Track 2", status: "Maintenance", color: "#f4b402", position: { top: 45, left: 120 } },
-  { track: "Track 4", status: "Reroute", color: "#e45859", position: { top: 105, left: 220 } }
-];
+export default function TrackOverview({ station }) {
+  const stationsCoords = {
+    "Kanpur Central": [26.4499, 80.3319],
+    Lucknow: [26.8467, 80.9462],
+    "Delhi Junction": [28.6500, 77.2300],
+    Varanasi: [25.3176, 82.9739],
+    Allahabad: [25.4358, 81.8463],
+  };
+  const position = stationsCoords[station] || [26.4499, 80.3319];
 
-export default function TrackOverview() {
   return (
-    <div style={{ position: "relative", width: "100%", minHeight: "230px" }}>
-      <img
-        src={stationMap}
-        alt="Track overview"
-        style={{
-          width: "100%",
-          borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(40,40,50,0.07)",
-          objectFit: "cover",
-          minHeight: "200px"
-        }}
-      />
-      {/* Overlay colored badges on the map */}
-      {trackAlerts.map((alert) => (
-        <span
-          key={alert.track}
-          style={{
-            position: "absolute",
-            top: alert.position.top,
-            left: alert.position.left,
-            background: alert.color,
-            color: "#fff",
-            padding: "6px 14px",
-            borderRadius: 9,
-            fontWeight: 700,
-            fontSize: "0.95rem",
-            boxShadow: "0 1px 6px rgba(40,40,50,0.1)",
-            border: "2px solid #fff"
-          }}
-        >
-          {alert.track}: {alert.status}
-        </span>
-      ))}
+    <div style={{ borderRadius: 14, overflow: "hidden", minHeight: 240 }}>
+      <MapContainer center={position} zoom={15} style={{ height: "240px", width: "100%" }}>
+        <TileLayer
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position}>
+          <Popup>{station} Railway Station</Popup>
+        </Marker>
+      </MapContainer>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 
 function DashboardLayout({ 
-  stationName,
+  // Remove stationName here as text will be handled outside
   dateTime,
   trackOverview,
   trainSchedule,
@@ -14,7 +14,8 @@ function DashboardLayout({
     <div className="dashboard-grid">
       {/* Header */}
       <header className="dashboard-header">
-        <div className="station-selector">{stationName} ▼</div>
+        {/* Station selector dropdown or buttons should be rendered here externally */}
+        <div className="station-selector-placeholder" />
         <div className="date-time">{dateTime}</div>
       </header>
 
