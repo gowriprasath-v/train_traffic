@@ -9,8 +9,13 @@ class Schedule(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(String, nullable=False)
 
-    # One schedule -> many trains
-    trains = relationship("TrainDB", back_populates="schedule", cascade="all, delete-orphan")
+    # One schedule -> many trains, ordered by arrival time
+    trains = relationship(
+        "TrainDB",
+        back_populates="schedule",
+        cascade="all, delete-orphan",
+        order_by="TrainDB.arrival"
+    )
 
 
 class TrainDB(Base):

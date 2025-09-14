@@ -61,13 +61,7 @@ def save_schedule_to_db(schedule_data: dict) -> None:
             logger.exception("Failed to save schedule to DB")
             raise
 
-def sort_trains_by_arrival(trains):
-    def arrival_key(t):
-        try:
-            return datetime.strptime(t["arrival"], "%H:%M")
-        except Exception:
-            return datetime.strptime("00:00", "%H:%M")
-    return sorted(trains, key=arrival_key)
+
 
 def get_schedule_from_db() -> dict | None:
     with get_db() as session:
@@ -89,7 +83,7 @@ def get_schedule_from_db() -> dict | None:
                     "status": t.status or "On time",
                     "delay_minutes": int(t.delay_minutes or 0)
                 })
-            trains = sort_trains_by_arrival(trains)
+            
             return {"date": schedule.date, "trains": trains}
         except SQLAlchemyError:
             logger.exception("Failed to read schedule from DB")

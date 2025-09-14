@@ -12,16 +12,7 @@ from scheduler import time_to_minutes
 
 logger = logging.getLogger(__name__)
 
-TIME_FMT = "%H:%M"
-MAX_PLATFORMS = int(os.getenv("MAX_PLATFORMS", "10"))
-DWELL_MINUTES = int(os.getenv("DWELL_MINUTES", "2"))
-
-def _overlap(a1: str, d1: str, a2: str, d2: str, buffer_minutes: int = DWELL_MINUTES) -> bool:
-    start1 = time_to_minutes(a1)
-    end1 = time_to_minutes(d1) + buffer_minutes
-    start2 = time_to_minutes(a2)
-    end2 = time_to_minutes(d2) + buffer_minutes
-    return not (end1 <= start2 or end2 <= start1)
+from config import TIME_FMT, MAX_PLATFORMS, DWELL_MINUTES
 
 def compute_metrics(schedule: Dict[str, Any], max_platforms: int | None = None) -> Dict[str, Any]:
     if not schedule or "trains" not in schedule or len(schedule["trains"]) == 0:
@@ -86,25 +77,45 @@ def _train_to_features(train: Train) -> List[int]:
         train.priority
     ]
 
-def predict_delays(trains: List[Train]) -> List[Train]:
-    X = np.array([
-        [7, 1], [8, 1], [9, 2], [10, 3], [11, 1], [12, 2],
-        [13, 3], [14, 1], [15, 2], [16, 1], [17, 3], [18, 2]
-    ])
-    y = np.array([5, 8, 2, 15, 6, 10, 20, 7, 12, 9, 25, 18])
+# TODO: Replace this with a proper pre-trained model loading mechanism
+def load_delay_prediction_model():
+    """
+    Placeholder for loading a pre-trained model.
+    In a real application, this would load a model from a file
+    (e.g., using joblib or pickle).
+    """
+    # This simple dictionary mimics a basic model's behavior.
+    # Key: (hour, priority), Value: predicted_delay
+    mock_model = {
+        (7, 1): 5, (8, 1): 8, (9, 2): 2, (10, 3): 15, (11, 1): 6, (12, 2): 10,
+        (13, 3): 20, (14, 1): 7, (15, 2): 12, (16, 1): 9, (17, 3): 25, (18, 2): 18
+    }
+    return mock_model
 
-    try:
-        model = LinearRegression()
-        model.fit(X, y)
-    except Exception as e:
-        logger.error(f"Error training ML model: {e}")
+# Load the model once when the module is imported.
+delay_model = load_delay_prediction_model()
+
+def predict_delays(trains: List[Train]) -> List[Train]:
+    """
+    Predicts delays for a list of trains using a pre-loaded model.
+    """
+    if not delay_model:
+        logger.error("Delay prediction model not loaded. Skipping prediction.")
         return trains
 
     for train in trains:
-        features = np.array([_train_to_features(train)])
-        predicted_delay = model.predict(features)[0]
-        train.delay_minutes = max(0, int(np.round(predicted_delay)))
-        train.status = "delayed" if train.delay_minutes > 5 else "on_time"
-        logger.info(f"AI predicted {train.train_id} will be delayed by {train.delay_minutes} minutes.")
-        
+        try:
+            features = tuple(_train_to_features(train))
+            # Use a default delay of 0 if features are not in the mock model
+            predicted_delay = delay_model.get(features, 0)
+            
+            train.delay_minutes = max(0, int(np.round(predicted_delay)))
+            train.status = "delayed" if train.delay_minutes > 5 else "on_time"
+            logger.info(f"AI predicted {train.train_id} will be delayed by {train.delay_minutes} minutes.")
+        except Exception as e:
+            logger.error(f"Error predicting delay for train {train.train_id}: {e}")
+            # Assign a default delay of 0 in case of an error
+            train.delay_minutes = 0
+            train.status = "on_time"
+            
     return trains

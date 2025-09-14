@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from models import ScheduleRequest, Alert
-from database_pg import save_schedule_to_db, get_schedule_from_db, sort_trains_by_arrival
+from database_pg import save_schedule_to_db, get_schedule_from_db
 from mongo_alerts import save_alert, get_recent_alerts
+from sqlalchemy.exc import SQLAlchemyError
+from pymongo.errors import PyMongoError
 from ai_model import compute_metrics, predict_delays
 from scheduler import get_optimized_schedule
 import logging
@@ -84,13 +86,13 @@ async def optimize(data: ScheduleRequest):
     trains_with_predictions = predict_delays(data.trains)
     data.trains = trains_with_predictions
     optimized = get_optimized_schedule(data)
-    optimized["trains"] = sort_trains_by_arrival(optimized["trains"])
+    
     
     try:
         save_schedule_to_db(optimized)
-    except Exception as e:
+    except SQLAlchemyError:
         logger.exception("Failed to save optimized schedule to DB")
-        raise HTTPException(status_code=500, detail="Failed to persist schedule")
+        raise HTTPException(status_code=500, detail="A database error occurred while saving the schedule.")
     
     metrics = compute_metrics(optimized)
     await manager.broadcast(json.dumps({"type": "metrics_update", "metrics": metrics}))
@@ -101,18 +103,18 @@ def get_schedule():
     logger.info("/schedule GET called")
     try:
         schedule = get_schedule_from_db()
-    except Exception:
-        raise HTTPException(status_code=500, detail="Error reading schedule from DB")
+    except SQLAlchemyError:
+        logger.exception("Error reading schedule from DB")
+        raise HTTPException(status_code=500, detail="A database error occurred while reading the schedule.")
     if not schedule:
         raise HTTPException(status_code=404, detail="No schedule found")
     return {"schedule": schedule}
 
-@app.get("/api/v1/metrics")
-def get_metrics():
     try:
         schedule = get_schedule_from_db()
-    except Exception:
-        raise HTTPException(status_code=500, detail="Error reading schedule from DB")
+    except SQLAlchemyError:
+        logger.exception("Error reading schedule from DB for metrics")
+        raise HTTPException(status_code=500, detail="A database error occurred while reading the schedule for metrics.")
     if not schedule:
         return {"metrics": {}}
     metrics = compute_metrics(schedule)
@@ -123,16 +125,18 @@ def post_alert(alert: Alert):
     logger.info("Received alert")
     try:
         save_alert(alert.model_dump())
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to store alert")
+    except PyMongoError:
+        logger.exception("Failed to store alert in MongoDB")
+        raise HTTPException(status_code=500, detail="A database error occurred while storing the alert.")
     return {"status": "alert saved"}
 
 @app.get("/api/v1/alerts")
 def recent_alerts():
     try:
         alerts = get_recent_alerts(10)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to read alerts")
+    except PyMongoError:
+        logger.exception("Failed to read alerts from MongoDB")
+        raise HTTPException(status_code=500, detail="A database error occurred while reading alerts.")
     return {"alerts": alerts}
 
 @app.websocket("/ws/metrics")

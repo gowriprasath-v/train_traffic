@@ -2,12 +2,7 @@ from pydantic import BaseModel, field_validator, validator
 from typing import List, Optional
 import re
 from datetime import datetime
-
-TIME_FMT = "%H:%M"
-DATE_FMT = "%Y-%m-%d"
-TIME_REGEX = r"^(?:[01]\d|2[0-3]):[0-5]\d$"
-DATE_REGEX = r"^\d{4}-\d{2}-\d{2}$"
-MAX_PLATFORMS = 10  # Adjust as per your environment
+from config import TIME_FMT, DATE_FMT, TIME_REGEX, DATE_REGEX, MAX_PLATFORMS
 
 class Train(BaseModel):
     train_id: str
