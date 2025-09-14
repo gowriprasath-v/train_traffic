@@ -1,10 +1,8 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from models import ScheduleRequest, Alert
-from database_pg import save_schedule_to_db, get_schedule_from_db
+from database_pg import save_schedule_to_db, get_schedule_from_db, sort_trains_by_arrival, get_db
 from mongo_alerts import save_alert, get_recent_alerts
-from sqlalchemy.exc import SQLAlchemyError
-from pymongo.errors import PyMongoError
 from ai_model import compute_metrics, predict_delays
 from scheduler import get_optimized_schedule
 import logging
@@ -76,7 +74,7 @@ def root():
     return {"msg": "Backend running"}
 
 @app.post("/api/v1/optimize")
-async def optimize(data: ScheduleRequest):
+async def optimize(data: ScheduleRequest, db=Depends(get_db)):
     logger.info(f"/optimize called with {len(data.trains)} trains for date {data.date}")
     if not data.trains:
         raise HTTPException(status_code=400, detail="No trains provided")
@@ -86,35 +84,35 @@ async def optimize(data: ScheduleRequest):
     trains_with_predictions = predict_delays(data.trains)
     data.trains = trains_with_predictions
     optimized = get_optimized_schedule(data)
-    
+    optimized["trains"] = sort_trains_by_arrival(optimized["trains"])
     
     try:
-        save_schedule_to_db(optimized)
-    except SQLAlchemyError:
+        save_schedule_to_db(optimized, db)
+    except Exception as e:
         logger.exception("Failed to save optimized schedule to DB")
-        raise HTTPException(status_code=500, detail="A database error occurred while saving the schedule.")
+        raise HTTPException(status_code=500, detail="Failed to persist schedule")
     
     metrics = compute_metrics(optimized)
     await manager.broadcast(json.dumps({"type": "metrics_update", "metrics": metrics}))
     return {"schedule": optimized}
 
 @app.get("/api/v1/schedule")
-def get_schedule():
+def get_schedule(db=Depends(get_db)):
     logger.info("/schedule GET called")
     try:
-        schedule = get_schedule_from_db()
-    except SQLAlchemyError:
-        logger.exception("Error reading schedule from DB")
-        raise HTTPException(status_code=500, detail="A database error occurred while reading the schedule.")
+        schedule = get_schedule_from_db(db)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error reading schedule from DB")
     if not schedule:
         raise HTTPException(status_code=404, detail="No schedule found")
     return {"schedule": schedule}
 
+@app.get("/api/v1/metrics")
+def get_metrics(db=Depends(get_db)):
     try:
-        schedule = get_schedule_from_db()
-    except SQLAlchemyError:
-        logger.exception("Error reading schedule from DB for metrics")
-        raise HTTPException(status_code=500, detail="A database error occurred while reading the schedule for metrics.")
+        schedule = get_schedule_from_db(db)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error reading schedule from DB")
     if not schedule:
         return {"metrics": {}}
     metrics = compute_metrics(schedule)
@@ -125,18 +123,16 @@ def post_alert(alert: Alert):
     logger.info("Received alert")
     try:
         save_alert(alert.model_dump())
-    except PyMongoError:
-        logger.exception("Failed to store alert in MongoDB")
-        raise HTTPException(status_code=500, detail="A database error occurred while storing the alert.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to store alert")
     return {"status": "alert saved"}
 
 @app.get("/api/v1/alerts")
 def recent_alerts():
     try:
         alerts = get_recent_alerts(10)
-    except PyMongoError:
-        logger.exception("Failed to read alerts from MongoDB")
-        raise HTTPException(status_code=500, detail="A database error occurred while reading alerts.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to read alerts")
     return {"alerts": alerts}
 
 @app.websocket("/ws/metrics")
