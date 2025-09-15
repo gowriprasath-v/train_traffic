@@ -8,8 +8,8 @@ def fetch_schedule():
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        print("Schedule Data:", data["schedule"])
-        return data["schedule"]
+        print("Schedule Data:", data.get("schedule"))
+        return data.get("schedule")
     except requests.exceptions.RequestException as e:
         print("Error fetching schedule:", e)
         return None
