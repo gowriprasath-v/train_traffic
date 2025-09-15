@@ -22,7 +22,7 @@ function TrainSchedule({ trains = [] }) {
       <table className="train-schedule-table" cellSpacing="0" cellPadding="0">
         <thead>
           <tr>
-            {['Train', 'Scheduled', 'Arrival', 'Departure', 'Status'].map((header) => (
+            {['Train', 'Scheduled', 'Arrival', 'Departure', 'Platform', 'Status'].map((header) => (
               <th key={header}>{header}</th>
             ))}
           </tr>
@@ -36,6 +36,7 @@ function TrainSchedule({ trains = [] }) {
                 <td>{train.scheduled || '—'}</td>
                 <td>{train.arrival || '—'}</td>
                 <td>{train.departure || '—'}</td>
+                <td>{train.platform || '—'}</td>
                 <td>
                   <span className="status-badge" style={badgeStyle}>
                     {train.status || 'Unknown'}
@@ -57,6 +58,7 @@ function TrainSchedule({ trains = [] }) {
               <div><strong>Scheduled:</strong> {train.scheduled || '—'}</div>
               <div><strong>Arrival:</strong> {train.arrival || '—'}</div>
               <div><strong>Departure:</strong> {train.departure || '—'}</div>
+              <div><strong>Platform:</strong> {train.platform || '—'}</div>
               <div>
                 <span className="status-badge" style={badgeStyle}>
                   {train.status || 'Unknown'}
