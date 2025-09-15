@@ -7,7 +7,7 @@ import SystemAlerts from "./components/SystemAlerts";
 import ControlMode from "./components/ControlMode";
 import KPIs from "./components/KPIs";
 import TrainSchedule from "./components/TrainSchedule";
-import 'leaflet/dist/leaflet.css'; // import leaflet CSS once here
+import "leaflet/dist/leaflet.css"; // import leaflet CSS once here
 
 // Spinner for loading states
 function Spinner() {
@@ -41,6 +41,76 @@ function StationSelector({ stations, selectedStation, onChange }) {
   );
 }
 
+// About modal component (optional, include if you want the About modal)
+function AboutModal({ open, onClose }) {
+  if (!open) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(37,36,44,0.48)",
+        zIndex: 1000,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          padding: "42px 42px 30px 42px",
+          minWidth: 300,
+          maxWidth: 410,
+          boxShadow: "0 12px 40px rgba(24,24,40,0.22)",
+        }}
+      >
+        <h2 style={{ marginTop: 0, marginBottom: 10, color: "#2c2854" }}>
+          About This Dashboard
+        </h2>
+        <div style={{ color: "#222", fontSize: "1.07rem", marginBottom: 10 }}>
+          A smart railway station dashboard for real-time train management and
+          status monitoring.
+          <br />
+          <br />
+          <strong>Developed by:</strong>
+          <br />
+          Kanpur Rail Hackathon Team
+          <br />
+          <strong>Tech Stack:</strong> React, Axios, React Leaflet, Python backend
+          <br />
+          <strong>Features:</strong>
+          <ul>
+            <li>Live alerts and train schedule</li>
+            <li>AI/manual control panel</li>
+            <li>Interactive maps with React Leaflet</li>
+            <li>KPI metrics and glass-effect UI</li>
+          </ul>
+        </div>
+        <button
+          style={{
+            marginTop: 18,
+            background: "#2c2854",
+            color: "#fff",
+            padding: "9px 28px",
+            borderRadius: 8,
+            border: "none",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const stations = [
     "Kanpur Central",
@@ -50,6 +120,7 @@ function App() {
     "Allahabad",
   ];
   const [selectedStation, setSelectedStation] = useState(stations[0]);
+  const [showAbout, setShowAbout] = useState(false);
 
   const [alerts, setAlerts] = useState([]);
   const [trains, setTrains] = useState([]);
@@ -95,6 +166,7 @@ function App() {
           scheduled: String(train.scheduled_time || train.arrival || ""),
           arrival: String(train.arrival || ""),
           departure: String(train.departure || ""),
+          platform: train.platform || "—", // Added platform field
           status: String(train.status || ""),
         }));
         setTrains(safeTrains);
@@ -108,6 +180,7 @@ function App() {
           scheduled: "14:30",
           arrival: "14:35",
           departure: "14:40",
+          platform: "1A",
           status: "On time",
         },
         {
@@ -115,6 +188,7 @@ function App() {
           scheduled: "14:45",
           arrival: "14:45",
           departure: "—",
+          platform: "2B",
           status: "Delayed",
         },
         {
@@ -122,6 +196,7 @@ function App() {
           scheduled: "15:00",
           arrival: "15:00",
           departure: "15:05",
+          platform: "3",
           status: "On time",
         },
         {
@@ -129,6 +204,7 @@ function App() {
           scheduled: "15:15",
           arrival: "—",
           departure: "—",
+          platform: "1",
           status: "Cancelled",
         },
       ]);
@@ -194,11 +270,11 @@ function App() {
         </div>
       )}
 
-      {/* Header area with Station Selector */}
+      {/* Header area with Station Selector and About button */}
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 14,
         }}
@@ -208,6 +284,24 @@ function App() {
           selectedStation={selectedStation}
           onChange={setSelectedStation}
         />
+
+        <button
+          onClick={() => setShowAbout(true)}
+          style={{
+            background: "#2c2854",
+            color: "#fff",
+            padding: "8px 20px",
+            fontWeight: 600,
+            borderRadius: 7,
+            border: "none",
+            fontSize: "1rem",
+            cursor: "pointer",
+            marginLeft: "26px",
+          }}
+          aria-label="About this dashboard"
+        >
+          ℹ️ About
+        </button>
       </div>
 
       {/* Dashboard Layout */}
@@ -242,6 +336,9 @@ function App() {
           </>
         }
       />
+
+      {/* About modal popup */}
+      <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
     </div>
   );
 }
