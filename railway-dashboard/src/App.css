@@ -1,14 +1,14 @@
-/* Gentle darker gradient background */
+/* Base setup */
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #9b8de5 0%, #b0b7d9 70%, #d9dde8 100%);
+  background: #c0c5d0;
   font-family: 'Inter', Arial, sans-serif;
   color: #222;
 }
 
-
+/* Dashboard grid */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -18,13 +18,12 @@ body {
     "train control"
     "train kpis"
     "alerts-bottom alerts-bottom";
-  gap: 24px;
-  max-width: 1200px;
-  margin: 36px auto;
+  gap: 10px;
   background: transparent;
   color: #222;
 }
 
+/* Header */
 .dashboard-header {
   grid-area: header;
   display: flex;
@@ -32,8 +31,8 @@ body {
   align-items: center;
   font-weight: 600;
   font-size: 1.09rem;
-  margin-bottom: 0;
-  color: #3c3b56;
+  margin-bottom:0;
+  color: #4d4b7b;
 }
 
 .station-selector {
@@ -48,26 +47,15 @@ body {
   font-size: 1.01rem;
 }
 
+/* Generic card */
 .card {
   background: rgba(255, 255, 255, 0.85);
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 24px 30px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+  box-shadow: 13px 13px 12px rgba(0,0,0,0.1);
   border: 1px solid #eaeaea;
   color: #222;
 }
-
-.track-overview { grid-area: track; }
-.system-alerts { grid-area: system; }
-.train-schedule { grid-area: train; }
-.control-mode { grid-area: control; }
-.kpi-cards { 
-  grid-area: kpis; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 14px; 
-}
-.alerts-bottom { grid-area: alerts-bottom; margin-top: 20px; }
 
 .card > h2 {
   margin-top: 0;
@@ -75,9 +63,26 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-bottom: 18px;
-  color: #3c3b56;
+  color: #3b3975;
 }
 
+/* Grid areas */
+.track-overview { grid-area: track; }
+.system-alerts { grid-area: system; }
+.train-schedule { grid-area: train; }
+.control-mode { grid-area: control; }
+.kpi-cards {
+  grid-area: kpis;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.alerts-bottom {
+  grid-area: alerts-bottom;
+  margin-top: 20px;
+}
+
+/* System alerts */
 .system-alerts ul {
   list-style: none;
   padding: 0;
@@ -96,10 +101,11 @@ body {
   margin-right: 10px;
 }
 
+/* Train schedule */
 .train-schedule-container {
   max-width: 900px;
   margin: auto;
-  padding: 24px;
+  padding: 1px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -124,17 +130,18 @@ body {
   text-align: center;
 }
 
+/* Train rows */
 .train-row {
   background-color: #fafafa;
   border-radius: 12px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
   transition: background-color 0.3s ease;
 }
-
 .train-row:hover {
   background-color: #e9f7fe;
 }
 
+/* Status badges */
 .status-badge {
   display: inline-block;
   padding: 6px 18px;
@@ -147,45 +154,27 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   color: #3c3b56;
 }
-
 .status-badge:hover {
   transform: scale(1.1);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.13);
 }
 
-.train-schedule-table td.status-on {
-  color: #27ae60;
-}
+.train-schedule-table td.status-on { color: #27ae60; }
+.train-schedule-table td.status-delayed { color: #e67e22; }
+.train-schedule-table td.status-cancelled { color: #e74c3c; }
+.train-schedule-table tr:last-child td { border-bottom: none; }
 
-.train-schedule-table td.status-delayed {
-  color: #e67e22;
-}
-
-.train-schedule-table td.status-cancelled {
-  color: #e74c3c;
-}
-
-.train-schedule-table tr:last-child td {
-  border-bottom: none;
-}
-
+/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn {
   animation: fadeIn 0.6s ease forwards;
 }
 
-.train-cards {
-  display: none;
-}
+/* Train cards (mobile view) */
+.train-cards { display: none; }
 .train-card {
   background-color: #fff;
   box-shadow: 0 3px 12px rgba(0,0,0,0.07);
@@ -204,11 +193,8 @@ body {
   color: #222;
 }
 
-@media(max-width: 720px) {
-  .train-schedule-table {
-    display: none;
-  }
-  .train-cards {
-    display: block;
-  }
+/* Responsive */
+@media (max-width: 720px) {
+  .train-schedule-table { display: none; }
+  .train-cards { display: block; }
 }

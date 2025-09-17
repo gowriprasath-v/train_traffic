@@ -1,47 +1,112 @@
-import React from 'react';
+import React from "react";
 
 function KPIs({ metrics = {} }) {
   // Defensive check and flatten only primitive values
-  const entries = Object.entries(metrics).filter(([key, val]) => 
-    typeof val === 'string' || typeof val === 'number'
+  const entries = Object.entries(metrics).filter(
+    ([, val]) => typeof val === "string" || typeof val === "number"
   );
 
   const defaultMetrics = [
-    ['throughput', '15 trains/hr'],
-    ['avg_delay', '5 minutes'],
-    ['platform_utilization', '80%'],
-    ['punctuality_rate', '90%']
+    ["throughput", "15 trains/hr"],
+    ["avg_delay", "5 minutes"],
+    ["platform_utilization", "80%"],
+    ["punctuality", "90%"],
   ];
 
   const metricLabels = {
     throughput: "Throughput",
     avg_delay: "Avg delay",
     platform_utilization: "Platform utilization",
-    punctuality_rate: "Punctuality rate"
+    punctuality: "Punctuality",
   };
+
+  // 🔵 Unified blue color theme
+  const valueColor = "#2764adff";
 
   const metricsToShow = entries.length > 0 ? entries : defaultMetrics;
 
   return (
-    <>
-      {metricsToShow.map(([key, value]) => (
-        <div key={key} style={{
-          backgroundColor: '#f8f8fa',
-          borderRadius: '10px',
-          padding: '14px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontWeight: '600',
-          fontSize: '1rem',
-          marginBottom: 6,
-          border: '1px solid #eee'
-        }}>
-          <span>{metricLabels[key] || key}</span>
-          <span>{value.toString()}</span> {/* Ensure value is string */}
-        </div>
-      ))}
-    </>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "12px", // tighter spacing
+      }}
+    >
+      {metricsToShow.map(([key, value]) => {
+        const cleanValue =
+          typeof value === "string" ? value : value.toString();
+
+        // Extract percentage number if present (for progress bar)
+        const percentMatch = cleanValue.match(/(\d+)%/);
+        const percent = percentMatch ? parseInt(percentMatch[1], 10) : null;
+
+        return (
+          <div
+            key={key}
+            className="kpi-card"
+            style={{
+              background: "rgba(255, 255, 255, 0.7)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              borderRadius: "12px",
+              padding: "14px 16px", // smaller padding
+              boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "90px", // smaller height
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "1rem",
+                color: "#333",
+                fontWeight: 600, // bolder label
+              }}
+            >
+              {metricLabels[key] || key}
+            </span>
+
+            <span
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800, // extra bold value
+                color: valueColor,
+                marginTop: "4px",
+              }}
+            >
+              {cleanValue}
+            </span>
+
+            {/* Show progress bar for metrics with % values */}
+            {percent !== null && (
+              <div
+                style={{
+                  width: "100%",
+                  height: "5px",
+                  borderRadius: "4px",
+                  background: "rgba(0,0,0,0.1)",
+                  marginTop: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${percent}%`,
+                    height: "100%",
+                    background: valueColor,
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

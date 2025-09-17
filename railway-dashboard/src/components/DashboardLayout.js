@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
 function DashboardLayout({ 
-  // Remove stationName here as text will be handled outside
+  stationSelector,   // ✅ stationSelector instead of stationName
   dateTime,
   trackOverview,
   trainSchedule,
@@ -14,8 +14,10 @@ function DashboardLayout({
     <div className="dashboard-grid">
       {/* Header */}
       <header className="dashboard-header">
-        {/* Station selector dropdown or buttons should be rendered here externally */}
-        <div className="station-selector-placeholder" />
+        {/* Left: Station selector */}
+        <div>{stationSelector}</div>
+
+        {/* Right: Time */}
         <div className="date-time">{dateTime}</div>
       </header>
 
@@ -27,7 +29,7 @@ function DashboardLayout({
 
       {/* System Alerts */}
       <section className="system-alerts card">
-        <h2>System alerts</h2>
+        <h2>System Alerts</h2>
         {systemAlerts}
       </section>
 
